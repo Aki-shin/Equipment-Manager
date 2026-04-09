@@ -1,0 +1,155 @@
+{% extends "base.html" %}
+{% block title %}Возврат — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Оформление возврата</h1>
+</div>
+
+<form method="post">
+    <div class="form-row">
+        <div class="form-group">
+            <label>Дата *</label>
+            <input type="date" name="date" class="form-control" required value="{{ today }}">
+        </div>
+        <div class="form-group">
+            <label>Основание</label>
+            <input type="text" name="reason" class="form-control" placeholder="Причина возврата">
+        </div>
+    </div>
+    <div class="form-group">
+        <label>От кого (возвращает) *</label>
+        <div class="emp-autocomplete" data-on-select="onReturnEmployeeSelected" data-search-params="include_inactive=1">
+            <input type="text" class="form-control emp-search" placeholder="Начните вводить ФИО..." required>
+            <input type="hidden" name="from_employee_id" class="emp-value" required>
+            <div class="emp-dropdown"></div>
+        </div>
+    </div>
+
+    <div class="items-section">
+        <h3 style="margin-bottom:.5rem">Возвращаемое оборудование</h3>
+        <table id="return-table">
+            <thead>
+                <tr>
+                    <th>Наименование</th>
+                    <th>Инв. &#8470;</th>
+                    <th>Серийный &#8470;</th>
+                    <th>Дата приёмки</th>
+                    <th>Подразделение</th>
+                    <th>Доступно</th>
+                    <th>Кол-во</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="items-body">
+                <tr class="item-row">
+                    <td>
+                        <select name="equipment_id" class="form-control eq-select" required>
+                            <option value="">— сначала выберите сотрудника —</option>
+                        </select>
+                    </td>
+                    <td class="cell-inv">—</td>
+                    <td class="cell-serial">—</td>
+                    <td class="cell-receipt-date">—</td>
+                    <td class="cell-department">—</td>
+                    <td class="cell-available">—</td>
+                    <td><input type="number" name="item_quantity" class="form-control qty-input" min="1" value="1" style="width:80px"></td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">&#10005;</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addRow()">+ Добавить позицию</button>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem">
+        <label>Примечания</label>
+        <textarea name="notes" class="form-control"></textarea>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">Оформить возврат</button>
+        <a href="{{ url_for('index') }}" class="btn btn-outline">Отмена</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let equipmentData = [];
+
+function onReturnEmployeeSelected(emp) {
+    loadEquipment(emp.id);
+}
+
+function loadEquipment(empId) {
+    if (!empId) return;
+    fetch('/api/equipment-by-employee/' + empId)
+        .then(r => r.json())
+        .then(data => {
+            equipmentData = data;
+            document.querySelectorAll('.eq-select').forEach(sel => {
+                rebuildOptions(sel);
+            });
+        });
+}
+
+function rebuildOptions(sel) {
+    const oldVal = sel.value;
+    sel.innerHTML = '<option value="">— выберите —</option>';
+    equipmentData.forEach(eq => {
+        const opt = document.createElement('option');
+        opt.value = eq.id;
+        opt.textContent = eq.name + (eq.inventory_number ? ' (' + eq.inventory_number + ')' : '') + ' — ' + eq.quantity + ' ' + eq.unit;
+        opt.dataset.inv = eq.inventory_number;
+        opt.dataset.serial = eq.serial_number;
+        opt.dataset.receiptDate = eq.receipt_date;
+        opt.dataset.department = eq.department;
+        opt.dataset.qty = eq.quantity;
+        opt.dataset.unit = eq.unit;
+        sel.appendChild(opt);
+    });
+    if (oldVal) sel.value = oldVal;
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('eq-select')) {
+        const row = e.target.closest('tr');
+        const opt = e.target.selectedOptions[0];
+        const qtyInput = row.querySelector('.qty-input');
+        if (opt && opt.value) {
+            row.querySelector('.cell-inv').textContent = opt.dataset.inv || '—';
+            row.querySelector('.cell-serial').textContent = opt.dataset.serial || '—';
+            row.querySelector('.cell-receipt-date').textContent = opt.dataset.receiptDate || '—';
+            row.querySelector('.cell-department').textContent = opt.dataset.department || '—';
+            var avail = parseInt(opt.dataset.qty) || 1;
+            row.querySelector('.cell-available').textContent = avail;
+            qtyInput.max = avail;
+            if (parseInt(qtyInput.value) > avail) qtyInput.value = avail;
+        } else {
+            row.querySelector('.cell-inv').textContent = '—';
+            row.querySelector('.cell-serial').textContent = '—';
+            row.querySelector('.cell-receipt-date').textContent = '—';
+            row.querySelector('.cell-department').textContent = '—';
+            row.querySelector('.cell-available').textContent = '—';
+            qtyInput.removeAttribute('max');
+        }
+    }
+});
+
+function addRow() {
+    const tbody = document.getElementById('items-body');
+    const first = tbody.querySelector('.item-row');
+    const clone = first.cloneNode(true);
+    const sel = clone.querySelector('.eq-select');
+    rebuildOptions(sel);
+    sel.value = '';
+    clone.querySelector('.qty-input').value = '1';
+    clone.querySelector('.qty-input').removeAttribute('max');
+    clone.querySelector('.cell-inv').textContent = '—';
+    clone.querySelector('.cell-serial').textContent = '—';
+    clone.querySelector('.cell-receipt-date').textContent = '—';
+    clone.querySelector('.cell-department').textContent = '—';
+    clone.querySelector('.cell-available').textContent = '—';
+    tbody.appendChild(clone);
+}
+</script>
+{% endblock %}

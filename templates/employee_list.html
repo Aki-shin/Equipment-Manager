@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Сотрудники — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Сотрудники</h1>
+    <div style="display:flex;gap:.5rem;align-items:center">
+        {% if ipa and ipa.last_sync %}
+        <span style="font-size:.8rem;color:var(--gray-500)">Синхронизация: {{ ipa.last_sync.strftime('%d.%m.%Y %H:%M') }}</span>
+        {% endif %}
+        <a href="{{ url_for('settings') }}" class="btn btn-outline btn-sm">Настройки FreeIPA</a>
+    </div>
+</div>
+
+<div class="filter-bar" style="margin-bottom:1rem">
+    <div class="form-group" style="max-width:300px">
+        <label>Поиск</label>
+        <input type="text" id="emp-filter" class="form-control" placeholder="ФИО, должность, отдел...">
+    </div>
+    <div class="form-group">
+        <label>Техника</label>
+        <select id="eq-filter" class="form-control">
+            <option value="">Все</option>
+            <option value="has">С техникой</option>
+            <option value="none">Без техники</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Статус</label>
+        <select id="status-filter" class="form-control">
+            <option value="">Все</option>
+            <option value="active">Активные</option>
+            <option value="dismissed">Уволенные</option>
+        </select>
+    </div>
+</div>
+
+<table id="emp-table">
+    <thead>
+        <tr>
+            <th>ФИО</th>
+            <th>Должность</th>
+            <th>Отдел</th>
+            <th>Техника</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for emp in employees %}
+        {% set eq_count = emp.equipment|selectattr('status', 'ne', 'written_off')|list|length %}
+        <tr data-eq="{{ eq_count }}" data-active="{{ 'yes' if emp.is_active else 'no' }}"
+            {% if not emp.is_active and eq_count > 0 %} style="background:#fef3c7"
+            {% elif not emp.is_active %} style="opacity:.5"{% endif %}>
+            <td>
+                {{ emp.full_name }}
+                {% if not emp.is_active %}<span class="badge badge-red" style="font-size:.65rem;vertical-align:middle">уволен</span>{% endif %}
+            </td>
+            <td>{{ emp.position or '—' }}</td>
+            <td>{{ emp.department or '—' }}</td>
+            <td>
+                {{ eq_count }}
+                {% if not emp.is_active and eq_count > 0 %}
+                    <a href="{{ url_for('return_equipment') }}" class="btn btn-outline btn-sm" style="margin-left:.25rem;font-size:.7rem">Оформить возврат</a>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    {% if not employees %}
+        <tr><td colspan="4" style="text-align:center;color:var(--gray-500)">Нет сотрудников. Настройте синхронизацию с <a href="{{ url_for('settings') }}">FreeIPA</a>.</td></tr>
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function filterTable() {
+    var q = (document.getElementById('emp-filter').value || '').toLowerCase();
+    var eqFilter = document.getElementById('eq-filter').value;
+    var statusFilter = document.getElementById('status-filter').value;
+    var rows = document.querySelectorAll('#emp-table tbody tr');
+    rows.forEach(function(row) {
+        var text = row.textContent.toLowerCase();
+        var eqCount = parseInt(row.dataset.eq) || 0;
+        var isActive = row.dataset.active === 'yes';
+
+        var matchText = !q || text.indexOf(q) !== -1;
+        var matchEq = !eqFilter
+            || (eqFilter === 'has' && eqCount > 0)
+            || (eqFilter === 'none' && eqCount === 0);
+        var matchStatus = !statusFilter
+            || (statusFilter === 'active' && isActive)
+            || (statusFilter === 'dismissed' && !isActive);
+
+        row.style.display = (matchText && matchEq && matchStatus) ? '' : 'none';
+    });
+}
+document.getElementById('emp-filter').addEventListener('input', filterTable);
+document.getElementById('eq-filter').addEventListener('change', filterTable);
+document.getElementById('status-filter').addEventListener('change', filterTable);
+</script>
+{% endblock %}

@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}{{ eq.name }} — Оборудование{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>{{ eq.name }}</h1>
+    <a href="{{ url_for('equipment_list') }}" class="btn btn-outline">Назад к списку</a>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <div class="label">Категория</div>
+        <div style="font-size:1.1rem;font-weight:600;margin-top:.25rem">{{ eq.category.name }}</div>
+    </div>
+    <div class="card">
+        <div class="label">Статус</div>
+        <div style="margin-top:.25rem">
+            {% if eq.status == 'on_stock' %}<span class="badge badge-green">На складе</span>
+            {% elif eq.status == 'in_use' %}<span class="badge badge-blue">В использовании</span>
+            {% elif eq.status == 'written_off' %}<span class="badge badge-red">Списано</span>
+            {% endif %}
+        </div>
+    </div>
+    <div class="card">
+        <div class="label">Количество</div>
+        <div style="font-size:1.1rem;font-weight:600;margin-top:.25rem">{{ eq.quantity }} {{ eq.unit }}</div>
+    </div>
+</div>
+
+<table style="max-width:600px;margin-bottom:1.5rem">
+    <tbody>
+        <tr><td style="width:200px"><strong>Инвентарный номер</strong></td><td>{{ eq.inventory_number or '—' }}</td></tr>
+        <tr><td><strong>Серийный номер</strong></td><td>{{ eq.serial_number or '—' }}</td></tr>
+        <tr><td><strong>Дата приёмки</strong></td><td>{{ eq.receipt_date.strftime('%d.%m.%Y') if eq.receipt_date else '—' }}</td></tr>
+        <tr><td><strong>Дата последней операции</strong></td><td>{{ eq.last_operation_date.strftime('%d.%m.%Y') if eq.last_operation_date else '—' }}</td></tr>
+        <tr><td><strong>Расположение</strong></td><td>{{ eq.location or '—' }}</td></tr>
+        <tr>
+            <td><strong>Ответственный</strong></td>
+            <td>
+                {% if eq.status == 'in_use' %}
+                    {{ eq.assigned_to.full_name if eq.assigned_to else '—' }}
+                    {% if eq.assigned_to and eq.assigned_to.department %}<span style="color:var(--gray-500);font-size:.85rem"> — {{ eq.assigned_to.department }}</span>{% endif %}
+                {% else %}
+                    {{ eq.last_responsible or '—' }}
+                {% endif %}
+            </td>
+        </tr>
+        {% if eq.description %}
+        <tr><td><strong>Описание</strong></td><td>{{ eq.description }}</td></tr>
+        {% endif %}
+    </tbody>
+</table>
+
+<h2 style="margin-bottom:.75rem">История операций</h2>
+{% if history %}
+<table>
+    <thead>
+        <tr>
+            <th>Документ</th>
+            <th>Тип</th>
+            <th>Дата</th>
+            <th>Детали</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for txn in history %}
+        <tr>
+            <td>{{ txn.document_number }}</td>
+            <td>
+                {% if txn.type == 'receipt' %}<span class="badge badge-green">Приёмка</span>
+                {% elif txn.type == 'transfer' %}<span class="badge badge-blue">Передача</span>
+                {% elif txn.type == 'return' %}<span class="badge badge-yellow">Возврат</span>
+                {% elif txn.type == 'write_off' %}<span class="badge badge-red">Списание</span>
+                {% endif %}
+            </td>
+            <td>{{ txn.date.strftime('%d.%m.%Y') }}</td>
+            <td>
+                {% if txn.type == 'receipt' %}Поставщик: {{ txn.supplier or '—' }}
+                {% elif txn.type == 'transfer' %}{{ txn.from_employee.full_name if txn.from_employee else 'Склад' }} &rarr; {{ txn.to_employee.full_name if txn.to_employee else '' }}
+                {% elif txn.type == 'return' %}{{ txn.from_employee.full_name if txn.from_employee else '' }} &rarr; Склад
+                {% elif txn.type == 'write_off' %}{{ txn.reason or '' }}
+                {% endif %}
+            </td>
+            <td><a href="{{ url_for('document_view', txn_id=txn.id) }}" class="btn btn-outline btn-sm">Документ</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color:var(--gray-500)">Нет операций.</p>
+{% endif %}
+{% endblock %}

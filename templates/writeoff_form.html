@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block title %}Списание — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Оформление списания</h1>
+</div>
+
+<form method="post">
+    <div class="form-row">
+        <div class="form-group">
+            <label>Дата *</label>
+            <input type="date" name="date" class="form-control" required value="{{ today }}">
+        </div>
+        <div class="form-group">
+            <label>Причина списания *</label>
+            <input type="text" name="reason" class="form-control" required placeholder="Износ, неисправность и т.д.">
+        </div>
+    </div>
+
+    <div class="items-section">
+        <h3 style="margin-bottom:.5rem">Списываемое оборудование</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Оборудование</th>
+                    <th>Доступно</th>
+                    <th>Количество</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="items-body">
+                <tr class="item-row">
+                    <td>
+                        <select name="equipment_id" class="form-control eq-select" required>
+                            <option value="">— выберите —</option>
+                            {% for eq in equipment %}
+                            <option value="{{ eq.id }}" data-qty="{{ eq.quantity }}">{{ eq.name }}{% if eq.inventory_number %} ({{ eq.inventory_number }}){% endif %} — {{ eq.status_display }}{% if eq.assigned_to %} [{{ eq.assigned_to.full_name }}]{% endif %} ({{ eq.quantity }} {{ eq.unit }})</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="cell-available">—</td>
+                    <td><input type="number" name="item_quantity" class="form-control qty-input" min="1" value="1" style="width:80px"></td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">&#10005;</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addRow()">+ Добавить позицию</button>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem">
+        <label>Примечания</label>
+        <textarea name="notes" class="form-control"></textarea>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-danger">Оформить списание</button>
+        <a href="{{ url_for('index') }}" class="btn btn-outline">Отмена</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('eq-select')) {
+        var row = e.target.closest('tr');
+        var opt = e.target.selectedOptions[0];
+        var cell = row.querySelector('.cell-available');
+        var qtyInput = row.querySelector('.qty-input');
+        if (opt && opt.value) {
+            var avail = parseInt(opt.dataset.qty) || 1;
+            cell.textContent = avail;
+            qtyInput.max = avail;
+            if (parseInt(qtyInput.value) > avail) qtyInput.value = avail;
+        } else {
+            cell.textContent = '—';
+            qtyInput.removeAttribute('max');
+        }
+    }
+});
+
+function addRow() {
+    var tbody = document.getElementById('items-body');
+    var first = tbody.querySelector('.item-row');
+    var clone = first.cloneNode(true);
+    clone.querySelector('select').value = '';
+    clone.querySelector('.qty-input').value = '1';
+    clone.querySelector('.qty-input').removeAttribute('max');
+    clone.querySelector('.cell-available').textContent = '—';
+    tbody.appendChild(clone);
+}
+</script>
+{% endblock %}

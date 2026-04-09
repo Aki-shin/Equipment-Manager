@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}История операций — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>История операций</h1>
+</div>
+
+<form class="filter-bar" method="get">
+    <div class="form-group">
+        <label>Тип операции</label>
+        <select name="type" class="form-control" onchange="this.form.submit()">
+            <option value="">Все</option>
+            <option value="receipt" {% if type_filter == 'receipt' %}selected{% endif %}>Приёмка</option>
+            <option value="transfer" {% if type_filter == 'transfer' %}selected{% endif %}>Передача</option>
+            <option value="return" {% if type_filter == 'return' %}selected{% endif %}>Возврат</option>
+            <option value="write_off" {% if type_filter == 'write_off' %}selected{% endif %}>Списание</option>
+        </select>
+    </div>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Документ</th>
+            <th>Тип</th>
+            <th>Дата</th>
+            <th>Детали</th>
+            <th>Провёл операцию</th>
+            <th>Позиций</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for txn in transactions %}
+        <tr>
+            <td>{{ txn.document_number }}</td>
+            <td>
+                {% if txn.type == 'receipt' %}<span class="badge badge-green">Приёмка</span>
+                {% elif txn.type == 'transfer' %}<span class="badge badge-blue">Передача</span>
+                {% elif txn.type == 'return' %}<span class="badge badge-yellow">Возврат</span>
+                {% elif txn.type == 'write_off' %}<span class="badge badge-red">Списание</span>
+                {% endif %}
+            </td>
+            <td>{{ txn.date.strftime('%d.%m.%Y') }}</td>
+            <td>
+                {% if txn.type == 'receipt' and txn.supplier %}
+                    Поставщик: {{ txn.supplier }}
+                {% elif txn.type == 'transfer' %}
+                    {{ txn.from_employee.full_name if txn.from_employee else 'Склад' }} &rarr; {{ txn.to_employee.full_name if txn.to_employee else '' }}
+                {% elif txn.type == 'return' %}
+                    {{ txn.from_employee.full_name if txn.from_employee else '' }} &rarr; Склад
+                {% elif txn.type == 'write_off' %}
+                    {{ txn.reason or '' }}
+                {% endif %}
+            </td>
+            <td>{{ txn.responsible_user or '—' }}</td>
+            <td>{{ txn.items|length }}</td>
+            <td>
+                <a href="{{ url_for('document_view', txn_id=txn.id) }}" class="btn btn-outline btn-sm">Документ</a>
+            </td>
+        </tr>
+    {% endfor %}
+    {% if not transactions %}
+        <tr><td colspan="7" style="text-align:center;color:var(--gray-500)">Нет операций</td></tr>
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}

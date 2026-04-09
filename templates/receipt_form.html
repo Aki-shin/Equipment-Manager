@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% block title %}Приёмка — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Оформление приёмки</h1>
+</div>
+
+<form method="post" id="receipt-form">
+    <div class="form-row">
+        <div class="form-group">
+            <label>Дата *</label>
+            <input type="date" name="date" class="form-control" required value="{{ today }}">
+        </div>
+        <div class="form-group">
+            <label>Поставщик</label>
+            <input type="text" name="supplier" class="form-control" placeholder="Наименование поставщика">
+        </div>
+    </div>
+
+    <div class="form-group">
+        <label>Кто передаёт *</label>
+        <div class="emp-autocomplete">
+            <input type="text" class="form-control emp-search" placeholder="Начните вводить ФИО..." required>
+            <input type="hidden" name="from_employee_id" class="emp-value" required>
+            <div class="emp-dropdown"></div>
+        </div>
+    </div>
+
+    {% if current_employee %}
+    <p style="font-size:.9rem;margin-bottom:.75rem;color:var(--gray-700)">
+        <strong>Принимает (получатель):</strong> {{ current_employee.full_name }}{% if current_employee.position %}, {{ current_employee.position }}{% endif %}{% if current_employee.department %}, {{ current_employee.department }}{% endif %}
+    </p>
+    {% endif %}
+
+    <div class="items-section">
+        <h3 style="margin-bottom:.5rem">Принимаемое оборудование</h3>
+        <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:.75rem">
+            Заполните данные для каждой единицы оборудования. При сохранении оно будет добавлено на склад.
+        </p>
+        <div id="items-container">
+            <div class="receipt-item" style="background:#fff;border:1px solid var(--gray-200);border-radius:.5rem;padding:1rem;margin-bottom:.75rem">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:.75rem">
+                    <strong style="font-size:.9rem">Позиция 1</strong>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="removeItem(this)" style="display:none">Удалить</button>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Наименование *</label>
+                        <input type="text" name="eq_name" class="form-control" required placeholder="Ноутбук Dell Latitude 5540">
+                    </div>
+                    <div class="form-group">
+                        <label>Категория *</label>
+                        <select name="eq_category_id" class="form-control" required>
+                            {% for cat in categories %}
+                            <option value="{{ cat.id }}">{{ cat.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Инвентарный номер</label>
+                        <input type="text" name="eq_inventory_number" class="form-control">
+                    </div>
+                    <div class="form-group">
+                        <label>Серийный номер</label>
+                        <input type="text" name="eq_serial_number" class="form-control">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Количество</label>
+                        <input type="number" name="eq_quantity" class="form-control" min="1" value="1">
+                    </div>
+                    <div class="form-group">
+                        <label>Единица измерения</label>
+                        <input type="text" name="eq_unit" class="form-control" value="шт.">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Описание</label>
+                    <input type="text" name="eq_description" class="form-control" placeholder="Доп. информация (необязательно)">
+                </div>
+            </div>
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addItem()">+ Добавить позицию</button>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem">
+        <label>Примечания</label>
+        <textarea name="notes" class="form-control"></textarea>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">Оформить приёмку</button>
+        <a href="{{ url_for('index') }}" class="btn btn-outline">Отмена</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+let itemCount = 1;
+function addItem() {
+    itemCount++;
+    const container = document.getElementById('items-container');
+    const first = container.querySelector('.receipt-item');
+    const clone = first.cloneNode(true);
+    clone.querySelector('strong').textContent = 'Позиция ' + itemCount;
+    clone.querySelector('button').style.display = '';
+    clone.querySelectorAll('input[type="text"]').forEach(i => i.value = '');
+    clone.querySelector('input[type="number"]').value = '1';
+    const unitInput = clone.querySelectorAll('input[type="text"]');
+    unitInput[unitInput.length - 2].value = 'шт.';
+    container.appendChild(clone);
+}
+function removeItem(btn) {
+    btn.closest('.receipt-item').remove();
+    document.querySelectorAll('.receipt-item strong').forEach((s, i) => {
+        s.textContent = 'Позиция ' + (i + 1);
+    });
+    itemCount = document.querySelectorAll('.receipt-item').length;
+}
+</script>
+{% endblock %}

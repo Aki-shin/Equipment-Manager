@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+{% block title %}Акт списания {{ txn.document_number }}{% endblock %}
+{% block content %}
+<div class="doc-container">
+    <div class="doc-header">
+        <h1>АКТ СПИСАНИЯ<br>МАТЕРИАЛЬНЫХ ЦЕННОСТЕЙ</h1>
+        <div class="doc-number">{{ txn.document_number }} от {{ txn.date.strftime('%d.%m.%Y') }}</div>
+    </div>
+
+    <div class="doc-meta">
+        <p><strong>Причина списания:</strong> {{ txn.reason }}</p>
+        {% if txn.responsible_user %}
+        <p><strong>Ответственный:</strong> {{ txn.responsible_user }}</p>
+        {% endif %}
+        {% if txn.notes %}
+        <p><strong>Примечания:</strong> {{ txn.notes }}</p>
+        {% endif %}
+    </div>
+
+    <p style="margin-bottom:.75rem">Комиссия в составе нижеподписавшихся произвела осмотр и признала непригодными к дальнейшей эксплуатации следующие материальные ценности:</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th style="width:40px">&#8470;</th>
+                <th>Наименование</th>
+                <th>Инв. &#8470;</th>
+                <th>Серийный &#8470;</th>
+                <th>Дата приёмки</th>
+                <th>Ед. изм.</th>
+                <th>Кол-во</th>
+            </tr>
+        </thead>
+        <tbody>
+        {% for item in txn.items %}
+            <tr>
+                <td>{{ loop.index }}</td>
+                <td>{{ item.equipment.name }}</td>
+                <td>{{ item.equipment.inventory_number or '—' }}</td>
+                <td>{{ item.equipment.serial_number or '—' }}</td>
+                <td>{{ item.equipment.receipt_date.strftime('%d.%m.%Y') if item.equipment.receipt_date else '—' }}</td>
+                <td>{{ item.equipment.unit }}</td>
+                <td>{{ item.quantity }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <p style="margin-top:1.5rem"><strong>Заключение комиссии:</strong> Перечисленные материальные ценности подлежат списанию с баланса организации.</p>
+
+    <div style="margin-top:2rem">
+        <p><strong>Члены комиссии:</strong></p>
+        <div style="margin-top:1.5rem">
+            <p>1. Должность: ___________________ ФИО: ________________________</p>
+            <div class="sig-line" style="margin-left:2rem"></div>
+            <p style="font-size:.8rem;color:var(--gray-500);margin-left:2rem;margin-bottom:1.5rem">(подпись)</p>
+
+            <p>2. Должность: ___________________ ФИО: ________________________</p>
+            <div class="sig-line" style="margin-left:2rem"></div>
+            <p style="font-size:.8rem;color:var(--gray-500);margin-left:2rem;margin-bottom:1.5rem">(подпись)</p>
+
+            <p>3. Должность: ___________________ ФИО: ________________________</p>
+            <div class="sig-line" style="margin-left:2rem"></div>
+            <p style="font-size:.8rem;color:var(--gray-500);margin-left:2rem">(подпись)</p>
+        </div>
+    </div>
+
+    <div style="margin-top:2.5rem">
+        <p><strong>Утверждаю:</strong></p>
+        <p style="margin-top:1rem">Руководитель: ___________________</p>
+        <div class="sig-line"></div>
+        <p style="font-size:.8rem;color:var(--gray-500)">(подпись)</p>
+    </div>
+</div>
+
+<div class="no-print" style="text-align:center;margin-top:1.5rem">
+    <button onclick="window.print()" class="btn btn-primary">Печать</button>
+    <a href="{{ url_for('history') }}" class="btn btn-outline">К истории</a>
+</div>
+{% endblock %}

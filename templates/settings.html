@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block title %}Настройки — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Настройки</h1>
+</div>
+
+<div style="max-width:600px">
+    <h2 style="margin-bottom:1rem">Синхронизация с FreeIPA</h2>
+    <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1rem">
+        FreeIPA VERSION: 4.12.2, API_VERSION: 2.254.
+        Сотрудники синхронизируются из указанной группы. Поля: Должность, Имя, Фамилия,
+        Полное имя, Email, Телефон, Мобильный, Отдел, Табельный номер.
+    </p>
+
+    <form method="post">
+        <div class="form-group">
+            <label>URL сервера FreeIPA *</label>
+            <input type="url" name="server_url" class="form-control" required
+                   placeholder="https://ipa.example.com" value="{{ ipa.server_url or '' }}">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Имя пользователя *</label>
+                <input type="text" name="username" class="form-control" required
+                       placeholder="admin" value="{{ ipa.username or '' }}">
+            </div>
+            <div class="form-group">
+                <label>Пароль {% if ipa.password %}(сохранён){% else %}*{% endif %}</label>
+                <input type="password" name="password" class="form-control"
+                       placeholder="{% if ipa.password %}оставьте пустым, чтобы не менять{% else %}пароль{% endif %}">
+            </div>
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label>Группа пользователей *</label>
+                <input type="text" name="user_group" class="form-control" required
+                       placeholder="employees" value="{{ ipa.user_group or 'employees' }}">
+            </div>
+            <div class="form-group">
+                <label>&nbsp;</label>
+                <label style="font-weight:normal;font-size:.9rem">
+                    <input type="checkbox" name="verify_ssl" {% if ipa.verify_ssl %}checked{% endif %}> Проверять SSL-сертификат
+                </label>
+            </div>
+        </div>
+
+        {% if ipa.last_sync %}
+        <p style="font-size:.85rem;color:var(--gray-500);margin-bottom:1rem">
+            Последняя синхронизация: {{ ipa.last_sync.strftime('%d.%m.%Y %H:%M:%S') }}
+        </p>
+        {% endif %}
+
+        <div class="form-actions">
+            <button type="submit" name="action" value="save" class="btn btn-primary">Сохранить</button>
+            <button type="submit" name="action" value="test" class="btn btn-outline">Тест подключения</button>
+            <button type="submit" name="action" value="sync" class="btn btn-success">Синхронизировать</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

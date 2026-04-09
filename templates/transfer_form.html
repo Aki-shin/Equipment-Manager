@@ -1,0 +1,115 @@
+{% extends "base.html" %}
+{% block title %}Передача — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Оформление передачи</h1>
+</div>
+
+<form method="post">
+    <div class="form-row">
+        <div class="form-group">
+            <label>Дата *</label>
+            <input type="date" name="date" class="form-control" required value="{{ today }}">
+        </div>
+        <div class="form-group">
+            <label>Основание</label>
+            <input type="text" name="reason" class="form-control" placeholder="Служебная записка, приказ и т.д.">
+        </div>
+    </div>
+
+    {% if current_employee %}
+    <p style="font-size:.9rem;margin-bottom:.75rem;color:var(--gray-700)">
+        <strong>Передающий (отпустил):</strong> {{ current_employee.full_name }}{% if current_employee.position %}, {{ current_employee.position }}{% endif %}{% if current_employee.department %}, {{ current_employee.department }}{% endif %}
+    </p>
+    {% endif %}
+
+    <div class="form-group">
+        <label>Кому (получатель) *</label>
+        <div class="emp-autocomplete">
+            <input type="text" class="form-control emp-search" placeholder="Начните вводить ФИО..." required>
+            <input type="hidden" name="to_employee_id" class="emp-value" required>
+            <div class="emp-dropdown"></div>
+        </div>
+    </div>
+
+    <div class="items-section">
+        <h3 style="margin-bottom:.5rem">Материальные ценности</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>Оборудование</th>
+                    <th>Доступно</th>
+                    <th>Количество</th>
+                    <th>Расположение</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody id="items-body">
+                <tr class="item-row">
+                    <td>
+                        <select name="equipment_id" class="form-control eq-select" required>
+                            <option value="">— выберите —</option>
+                            {% for eq in equipment %}
+                            <option value="{{ eq.id }}" data-qty="{{ eq.quantity }}">{{ eq.name }}{% if eq.inventory_number %} ({{ eq.inventory_number }}){% endif %} — {{ eq.quantity }} {{ eq.unit }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                    <td class="cell-available">—</td>
+                    <td><input type="number" name="item_quantity" class="form-control qty-input" min="1" value="1" style="width:80px"></td>
+                    <td><input type="text" name="item_location" class="form-control" placeholder="Кабинет, этаж..." style="width:160px"></td>
+                    <td><button type="button" class="btn btn-danger btn-sm" onclick="this.closest('tr').remove()">&#10005;</button></td>
+                </tr>
+            </tbody>
+        </table>
+        <button type="button" class="btn btn-outline btn-sm" onclick="addRow()">+ Добавить позицию</button>
+    </div>
+
+    <div class="form-group" style="margin-top:1rem">
+        <label>Примечания</label>
+        <textarea name="notes" class="form-control"></textarea>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-success">Оформить передачу</button>
+        <a href="{{ url_for('index') }}" class="btn btn-outline">Отмена</a>
+    </div>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+function updateAvailable(row) {
+    var sel = row.querySelector('.eq-select');
+    var cell = row.querySelector('.cell-available');
+    var qtyInput = row.querySelector('.qty-input');
+    var opt = sel.selectedOptions[0];
+    if (opt && opt.value) {
+        var avail = parseInt(opt.dataset.qty) || 1;
+        cell.textContent = avail;
+        qtyInput.max = avail;
+        if (parseInt(qtyInput.value) > avail) qtyInput.value = avail;
+    } else {
+        cell.textContent = '—';
+        qtyInput.removeAttribute('max');
+    }
+}
+
+document.addEventListener('change', function(e) {
+    if (e.target.classList.contains('eq-select')) {
+        updateAvailable(e.target.closest('tr'));
+    }
+});
+
+function addRow() {
+    var tbody = document.getElementById('items-body');
+    var first = tbody.querySelector('.item-row');
+    var clone = first.cloneNode(true);
+    clone.querySelector('select').value = '';
+    clone.querySelector('.qty-input').value = '1';
+    clone.querySelector('.qty-input').removeAttribute('max');
+    clone.querySelector('.cell-available').textContent = '—';
+    clone.querySelector('input[name="item_location"]').value = '';
+    tbody.appendChild(clone);
+}
+</script>
+{% endblock %}

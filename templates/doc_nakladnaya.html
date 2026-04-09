@@ -1,0 +1,339 @@
+{% extends "base.html" %}
+{% block title %}Требование-накладная {{ txn.document_number }}{% endblock %}
+{% block content %}
+
+<style>
+    .nak-page { font-family: "Times New Roman", Times, serif; font-size: 7pt; color: #000; max-width: 700px; margin: 0 auto; padding: 4px; }
+    .nak-page table { border-collapse: collapse; box-shadow: none; background: none; }
+    .nak-page th, .nak-page td { border: none; padding: 0; font-size: 7pt; background: none; }
+    .nak-page tr:hover td { background: none; }
+    .nak-page .b  { font-weight: bold; }
+    .nak-page .c  { text-align: center; }
+    .nak-page .r  { text-align: right; }
+    .nak-page .sm { font-size: 5.5pt; color: #555; }
+    .nak-page .bb { border-bottom: 1px solid #000; }
+
+    .nak-page .meta { width: 100%; margin-bottom: 0; }
+    .nak-page .meta td { padding: 0 2px; vertical-align: bottom; font-size: 7pt; }
+    .nak-page .meta .lbl { width: 155px; font-size: 6.5pt; }
+    .nak-page .meta .val { border-bottom: 1px solid #000; }
+    .nak-page .meta .code-lbl { width: 90px; text-align: right; font-size: 6pt; padding-right: 2px; }
+    .nak-page .meta .code-val { width: 70px; border: 1px solid #000; text-align: center; font-size: 6.5pt; }
+
+    .nak-page .items { width: 100%; margin: 3px 0; }
+    .nak-page .items th, .nak-page .items td { border: 1px solid #000; padding: 1px 2px; font-size: 6pt; text-align: center; vertical-align: middle; }
+    .nak-page .items th { background: #f5f5f5; font-size: 5.5pt; }
+    .nak-page .items td.l { text-align: left; }
+
+    .nak-page .sig { width: 100%; margin-top: 4px; }
+    .nak-page .sig td { padding: 0 2px; vertical-align: bottom; font-size: 7pt; }
+
+    @media print {
+        @page { size: A4 portrait; margin: 8mm 10mm; }
+        body { font-size: 6.5pt; }
+        .nak-page { max-width: 100%; }
+    }
+</style>
+
+<div class="nak-page">
+
+<div class="r sm" style="margin-bottom:1px">(в ред. Приказа Минфина России от 28.06.2022 &#8470; 100н)</div>
+
+<!-- РАЗРЕШАЮ -->
+<table style="width:100%;margin-bottom:2px">
+<tr>
+    <td style="width:55%"></td>
+    <td class="c" style="width:45%;font-size:7pt">
+        <div class="b" style="margin-bottom:1px">РАЗРЕШАЮ</div>
+        <div class="sm">Руководитель (уполномоченное лицо)</div>
+        <table style="width:100%">
+            <tr>
+                <td class="bb c" style="width:38%">&nbsp;</td>
+                <td style="width:4%"></td>
+                <td class="bb c" style="width:20%">&nbsp;</td>
+                <td style="width:4%"></td>
+                <td class="bb c" style="width:34%">&nbsp;</td>
+            </tr>
+            <tr>
+                <td class="c sm">(должность)</td><td></td>
+                <td class="c sm">(подпись)</td><td></td>
+                <td class="c sm">(расшифровка подписи)</td>
+            </tr>
+        </table>
+        <div style="margin-top:1px;font-size:7pt">"______"________________________20______г.</div>
+    </td>
+</tr>
+</table>
+
+<!-- Заголовок -->
+<div class="c b" style="font-size:9pt;margin:2px 0">ТРЕБОВАНИЕ-НАКЛАДНАЯ &#8470; ___________</div>
+
+<!-- «от» — отдельная строка -->
+<div style="text-align:center;font-size:7pt;margin:2px 0">от "______"________________________20______г.</div>
+
+<!-- КОДЫ -->
+<table style="width:100%;margin-bottom:1px">
+<tr>
+    <td></td>
+    <td style="border:1px solid #000;width:70px;text-align:center;font-size:6pt"><strong>КОДЫ</strong></td>
+</tr>
+</table>
+
+<!-- Мета-данные -->
+<table class="meta"><tr>
+    <td class="lbl"></td><td></td><td></td>
+    <td class="code-lbl">Форма по ОКУД</td>
+    <td class="code-val">0510451</td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl"></td><td></td><td></td>
+    <td class="code-lbl">Дата</td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Учреждение</td>
+    <td class="val" style="font-size:6pt">Государственное бюджетное учреждение здравоохранения Пермского края "Осинская центральная районная больница"</td>
+    <td class="code-lbl">по Сводному реестру</td>
+    <td class="code-val">57209496</td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Обособленное подразделение</td>
+    <td class="val"></td>
+    <td class="code-lbl">по Сводному реестру</td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Структурное подразделение</td>
+    <td class="val"><strong>{{ receiver_dept }}</strong></td>
+    <td class="code-lbl"></td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl" style="font-size:6pt">Главный администратор бюджетных средств<br>(Учредитель)</td>
+    <td class="val" style="font-size:6pt">Министерство здравоохранения Пермского края</td>
+    <td class="code-lbl">Глава по БК</td>
+    <td class="code-val">820</td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Наименование бюджета</td>
+    <td class="val">Бюджет Пермского края</td>
+    <td class="code-lbl">по ОКТМО</td>
+    <td class="code-val">57000000</td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Отправитель</td>
+    <td class="val"><strong>{{ sender_dept }}</strong></td>
+    <td class="code-lbl"></td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Ответственное лицо - отправитель</td>
+    <td class="val">{{ sender_emp.full_name if sender_emp else '' }}</td>
+    <td class="code-lbl">Учетный номер</td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Получатель</td>
+    <td class="val"><strong>{{ receiver_dept }}</strong></td>
+    <td class="code-lbl"></td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl">Ответственное лицо - получатель</td>
+    <td class="val">{{ receiver_emp.full_name if receiver_emp else '' }}</td>
+    <td class="code-lbl">Учетный номер</td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl" style="font-size:6pt">Единица измерения: руб. (с точностью до второго десятичного знака)</td>
+    <td></td>
+    <td class="code-lbl">по ОКЕИ</td>
+    <td class="code-val">383</td>
+</tr></table>
+
+<table class="meta"><tr><td style="height:4px"></td></tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl" style="font-size:6pt">Документ-основание (при наличии)</td>
+    <td class="val">{{ txn.reason or '' }}</td>
+    <td class="code-lbl">Номер</td>
+    <td class="code-val"></td>
+</tr></table>
+
+<table class="meta"><tr>
+    <td class="lbl"></td><td></td>
+    <td class="code-lbl">Дата</td>
+    <td class="code-val"></td>
+</tr></table>
+
+<!-- Затребовал -->
+<table class="meta" style="margin-top:2px"><tr>
+    <td style="width:60px;font-size:7pt"><strong>Затребовал</strong></td>
+    <td class="bb c" style="width:140px">{{ receiver_emp.position if receiver_emp else '' }}</td>
+    <td style="width:4px"></td>
+    <td class="bb c" style="width:80px"></td>
+    <td style="width:4px"></td>
+    <td class="bb c">{{ receiver_emp.full_name if receiver_emp else '' }}</td>
+    <td style="width:4px"></td>
+    <td class="code-lbl">Учетный номер</td>
+    <td class="code-val"></td>
+</tr></table>
+<table class="meta"><tr>
+    <td style="width:60px"></td>
+    <td class="c sm" style="width:140px">(должность)</td>
+    <td style="width:4px"></td>
+    <td class="c sm" style="width:80px">(подпись)</td>
+    <td style="width:4px"></td>
+    <td class="c sm">(расшифровка подписи)</td>
+    <td style="width:4px"></td><td style="width:80px"></td><td style="width:62px"></td>
+</tr></table>
+
+<div style="margin:2px 0;font-size:7pt">"______"________________________20______г.</div>
+
+<!-- Сведения -->
+<table class="meta" style="margin-top:2px"><tr>
+    <td style="font-size:6pt">Сведения о выдаваемых объектах материальных ценностей по группе</td>
+    <td class="bb c" style="width:180px"></td>
+    <td style="width:4px"></td>
+    <td class="code-lbl">Код группы</td>
+    <td class="code-val"></td>
+</tr></table>
+
+<!-- ТАБЛИЦА ПОЗИЦИЙ -->
+<table class="items">
+<thead>
+    <tr>
+        <th colspan="2">Материальные ценности</th>
+        <th rowspan="2" style="width:22px">Код<br>строки</th>
+        <th colspan="2">Учетный номер</th>
+        <th colspan="2">Единица измерения</th>
+        <th colspan="2">Количество</th>
+        <th rowspan="2" style="width:50px">Цена/<br>Первонач.<br>(баланс.)<br>стоимость</th>
+        <th rowspan="2" style="width:50px">Стоимость<br>объекта<br>(группы)</th>
+    </tr>
+    <tr>
+        <th style="min-width:120px">наименование<br>основное</th>
+        <th style="width:65px">наименование<br>дополнит.<br>(код)</th>
+        <th style="width:55px">инвентарный/<br>номенклат.</th>
+        <th style="width:50px">паспорта<br>(иной)</th>
+        <th style="width:45px">наименование</th>
+        <th style="width:30px">код по<br>ОКЕИ</th>
+        <th style="width:38px">затребовано</th>
+        <th style="width:38px">отпущено</th>
+    </tr>
+    <tr>
+        <th>1</th><th>2</th><th>3</th><th>4</th><th>5</th><th>6</th><th>7</th><th>8</th><th>9</th><th>10</th><th>11</th>
+    </tr>
+</thead>
+<tbody>
+    {% for item in txn.items %}
+    <tr>
+        <td class="l">{{ item.equipment.name }}</td>
+        <td>{{ item.equipment.description or '' }}</td>
+        <td>{{ loop.index }}</td>
+        <td>{{ item.equipment.inventory_number or '' }}</td>
+        <td>{{ item.equipment.serial_number or '' }}</td>
+        <td>{{ item.equipment.unit or 'шт.' }}</td>
+        <td></td>
+        <td>{{ item.quantity }}</td>
+        <td>{{ item.quantity }}</td>
+        <td></td>
+        <td></td>
+    </tr>
+    {% endfor %}
+    <tr>
+        <td colspan="7" class="l"><strong>Итого</strong></td>
+        <td>х</td>
+        <td>х</td>
+        <td>х</td>
+        <td></td>
+    </tr>
+</tbody>
+</table>
+
+<!-- Отпустил / Получил -->
+<table class="sig">
+<tr>
+    <td style="width:42px"><strong>Отпустил</strong></td>
+    <td class="bb c" style="width:110px">{{ sender_emp.position if sender_emp else '' }}</td>
+    <td style="width:3px"></td>
+    <td class="bb c" style="width:70px"></td>
+    <td style="width:3px"></td>
+    <td class="bb c" style="width:120px">{{ sender_emp.full_name if sender_emp else '' }}</td>
+    <td style="width:20px"></td>
+    <td style="width:42px"><strong>Получил</strong></td>
+    <td class="bb c" style="width:110px">{{ receiver_emp.position if receiver_emp else '' }}</td>
+    <td style="width:3px"></td>
+    <td class="bb c" style="width:70px"></td>
+    <td style="width:3px"></td>
+    <td class="bb c">{{ receiver_emp.full_name if receiver_emp else '' }}</td>
+</tr>
+<tr>
+    <td></td>
+    <td class="c sm">(должность)</td><td></td>
+    <td class="c sm">(подпись)</td><td></td>
+    <td class="c sm">(расшифровка подписи)</td>
+    <td></td><td></td>
+    <td class="c sm">(должность)</td><td></td>
+    <td class="c sm">(подпись)</td><td></td>
+    <td class="c sm">(расшифровка подписи)</td>
+</tr>
+</table>
+
+<table class="sig" style="margin-top:3px">
+<tr>
+    <td style="width:50%;font-size:7pt">"______"________________________20______г.</td>
+    <td></td>
+    <td style="width:50%;font-size:7pt">"______"________________________20______г.</td>
+</tr>
+</table>
+
+<!-- Ответственный исполнитель -->
+<div style="margin-top:6px;font-size:7pt"><strong>Ответственный исполнитель</strong></div>
+
+<div style="height:28px"></div>
+
+<table class="sig" style="margin-top:2px">
+<tr>
+    <td class="bb c" style="width:130px"></td>
+    <td style="width:3px"></td>
+    <td class="bb c" style="width:80px"></td>
+    <td style="width:3px"></td>
+    <td class="bb c" style="width:130px"></td>
+    <td style="width:3px"></td>
+    <td class="bb c" style="width:100px"></td>
+    <td style="width:3px"></td>
+    <td class="bb c"></td>
+</tr>
+<tr>
+    <td class="c sm">(должность)</td><td></td>
+    <td class="c sm">(подпись)</td><td></td>
+    <td class="c sm">(расшифровка подписи)</td><td></td>
+    <td class="c sm">(номер контактного телефона)</td><td></td>
+    <td class="c sm">(электронный адрес)</td>
+</tr>
+</table>
+
+<div style="height:8px"></div>
+
+<div style="font-size:7pt">"______"________________________20______г.</div>
+
+</div><!-- .nak-page -->
+
+<div class="no-print" style="text-align:center;margin-top:1.5rem">
+    <button onclick="window.print()" class="btn btn-primary">Печать страницы</button>
+    <a href="{{ url_for('history') }}" class="btn btn-outline">К истории</a>
+</div>
+
+{% endblock %}

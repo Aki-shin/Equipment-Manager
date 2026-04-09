@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+{% block title %}Главная — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Панель управления</h1>
+</div>
+
+<div class="cards">
+    <div class="card">
+        <div class="num">{{ total }}</div>
+        <div class="label">Всего единиц (актив)</div>
+    </div>
+    <div class="card">
+        <div class="num" style="color: var(--success)">{{ on_stock }}</div>
+        <div class="label">На складе</div>
+    </div>
+    <div class="card">
+        <div class="num" style="color: var(--primary)">{{ in_use }}</div>
+        <div class="label">В использовании</div>
+    </div>
+    <div class="card">
+        <div class="num" style="color: var(--danger)">{{ written_off }}</div>
+        <div class="label">Списано</div>
+    </div>
+</div>
+
+{% if dismissed_eq %}
+<div class="flash flash-warning" style="margin-bottom:1.25rem">
+    <strong>На уволенных сотрудниках числится {{ dismissed_eq }} ед. оборудования:</strong>
+    <ul style="margin:.5rem 0 0 1.25rem;font-size:.9rem">
+    {% for name, count in dismissed_employees %}
+        <li>{{ name }} &mdash; {{ count }} ед.</li>
+    {% endfor %}
+    </ul>
+    <div style="margin-top:.5rem">
+        <a href="{{ url_for('return_equipment') }}" class="btn btn-outline btn-sm">Оформить возврат</a>
+    </div>
+</div>
+{% endif %}
+
+<h2 style="margin-bottom:.75rem">Последние операции</h2>
+{% if recent %}
+<table>
+    <thead>
+        <tr>
+            <th>Документ</th>
+            <th>Тип</th>
+            <th>Дата</th>
+            <th>Позиций</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for txn in recent %}
+        <tr>
+            <td>{{ txn.document_number }}</td>
+            <td>
+                {% if txn.type == 'receipt' %}<span class="badge badge-green">Приёмка</span>
+                {% elif txn.type == 'transfer' %}<span class="badge badge-blue">Передача</span>
+                {% elif txn.type == 'return' %}<span class="badge badge-yellow">Возврат</span>
+                {% elif txn.type == 'write_off' %}<span class="badge badge-red">Списание</span>
+                {% endif %}
+            </td>
+            <td>{{ txn.date.strftime('%d.%m.%Y') }}</td>
+            <td>{{ txn.items|length }}</td>
+            <td><a href="{{ url_for('document_view', txn_id=txn.id) }}" class="btn btn-outline btn-sm">Документ</a></td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<p style="color: var(--gray-500)">Операций пока нет.</p>
+{% endif %}
+{% endblock %}

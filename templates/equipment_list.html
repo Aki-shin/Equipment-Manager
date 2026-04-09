@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Оборудование — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Оборудование</h1>
+</div>
+
+<form class="filter-bar" method="get">
+    <div class="form-group">
+        <label>Поиск</label>
+        <input type="text" name="search" class="form-control" placeholder="Название, инв. №, серийный №" value="{{ search }}">
+    </div>
+    <div class="form-group">
+        <label>Статус</label>
+        <select name="status" class="form-control">
+            <option value="">Все</option>
+            <option value="on_stock" {% if status_filter == 'on_stock' %}selected{% endif %}>На складе</option>
+            <option value="in_use" {% if status_filter == 'in_use' %}selected{% endif %}>В использовании</option>
+            <option value="written_off" {% if status_filter == 'written_off' %}selected{% endif %}>Списано</option>
+        </select>
+    </div>
+    <div class="form-group">
+        <label>Категория</label>
+        <select name="category" class="form-control">
+            <option value="">Все</option>
+            {% for cat in categories %}
+            <option value="{{ cat.id }}" {% if category_filter == cat.id|string %}selected{% endif %}>{{ cat.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-group">
+        <button type="submit" class="btn btn-outline">Фильтр</button>
+    </div>
+</form>
+
+<table>
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Категория</th>
+            <th>Инв. №</th>
+            <th>Серийный №</th>
+            <th>Кол-во</th>
+            <th>Статус</th>
+            <th>Ответственный</th>
+            <th>Расположение</th>
+            <th>Дата операции</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for item in items %}
+        <tr>
+            <td><a href="{{ url_for('equipment_view', eq_id=item.id) }}" style="color:var(--primary);text-decoration:none">{{ item.name }}</a></td>
+            <td>{{ item.category.name }}</td>
+            <td>{{ item.inventory_number or '—' }}</td>
+            <td>{{ item.serial_number or '—' }}</td>
+            <td>{{ item.quantity }} {{ item.unit }}</td>
+            <td>
+                {% if item.status == 'on_stock' %}<span class="badge badge-green">На складе</span>
+                {% elif item.status == 'in_use' %}<span class="badge badge-blue">В использовании</span>
+                {% elif item.status == 'written_off' %}<span class="badge badge-red">Списано</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if item.status == 'in_use' %}
+                    {{ item.assigned_to.full_name if item.assigned_to else '—' }}
+                {% else %}
+                    {{ item.last_responsible or '—' }}
+                {% endif %}
+            </td>
+            <td>{{ item.location or '—' }}</td>
+            <td>{{ item.last_operation_date.strftime('%d.%m.%Y') if item.last_operation_date else '—' }}</td>
+            <td><a href="{{ url_for('equipment_view', eq_id=item.id) }}" class="btn btn-outline btn-sm">Подробнее</a></td>
+        </tr>
+    {% endfor %}
+    {% if not items %}
+        <tr><td colspan="10" style="text-align:center; color:var(--gray-500)">Нет записей. Оборудование добавляется через <a href="{{ url_for('receipt') }}">приёмку</a>.</td></tr>
+    {% endif %}
+    </tbody>
+</table>
+{% endblock %}

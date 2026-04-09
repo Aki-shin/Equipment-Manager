@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% block title %}Категории — Учёт техники{% endblock %}
+{% block content %}
+<div class="page-header">
+    <h1>Категории</h1>
+</div>
+
+<form method="post" style="display:flex;gap:.5rem;margin-bottom:1rem;max-width:400px">
+    <input type="text" name="name" class="form-control" placeholder="Новая категория" required>
+    <button type="submit" class="btn btn-primary" style="white-space:nowrap">Добавить</button>
+</form>
+
+<table style="max-width:600px">
+    <thead>
+        <tr>
+            <th>Название</th>
+            <th>Оборудования</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+    {% for cat in categories %}
+        <tr>
+            <td>
+                <form method="post" action="{{ url_for('category_edit', cat_id=cat.id) }}" style="display:flex;gap:.25rem" class="inline-edit-form">
+                    <input type="text" name="name" class="form-control" value="{{ cat.name }}" required style="padding:.25rem .5rem;font-size:.85rem;min-width:200px">
+                    <button type="submit" class="btn btn-outline btn-sm">Сохранить</button>
+                </form>
+            </td>
+            <td>{{ cat.equipment|length }}</td>
+            <td>
+                {% if cat.equipment|length == 0 %}
+                <form method="post" action="{{ url_for('category_delete', cat_id=cat.id) }}" style="display:inline" onsubmit="return confirm('Удалить категорию «{{ cat.name }}»?')">
+                    <button type="submit" class="btn btn-danger btn-sm">Удалить</button>
+                </form>
+                {% else %}
+                <span style="font-size:.8rem;color:var(--gray-500)" title="Нельзя удалить: есть привязанное оборудование">—</span>
+                {% endif %}
+            </td>
+        </tr>
+    {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
