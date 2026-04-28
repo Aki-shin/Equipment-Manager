@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python -c ':*)",
+      "Bash(PORT=5556 timeout 5 python app.py)",
+      "Bash(PORT=5558 timeout 5 python app.py)",
+      "Bash(PORT=5559 timeout 5 python app.py)"
+    ]
+  }
+}
